@@ -7,6 +7,12 @@ import static org.junit.Assert.*;
 public class TreeTest {
 
     @Test
+    public void treeConstructorShouldSetTheTreeName(){
+        assertEquals("t", new Tree("t").name);
+
+    }
+
+    @Test
     public void getChildByNameReturnTreeIfNotExist() {
         Tree t = new Tree("t");
         assertNotNull(t.GetChildByName("t2"));
