@@ -316,7 +316,7 @@ public class FileSystemTest {
     }
 
     @Test
-    public void dirShouldAddFolderToTheSystemTree(){
+    public void dirShouldAddFolderToTheSystemTree() {
         FileSystem fs = new FileSystem(10);
         String[] dirPath = {"root", "dir1"};
         String[] rootPath = {"root"};
@@ -329,5 +329,151 @@ public class FileSystemTest {
         assertArrayEquals(expected, fs.lsdir(rootPath));
     }
 
+    //disk:
+    @Test
+    public void diskShouldSaveFilesPathInTheDiskArray() {
+        FileSystem fs = new FileSystem(10);
+        String[] filePath = {"root", "dir1", "file1"};
+        try {
+            fs.file(filePath, 5);
+            String[][] actualDisk = fs.disk();
+            for (int i = 0; i < 5; i++) {
+                assertArrayEquals(filePath, actualDisk[i]);
+            }
+        } catch (BadFileNameException e) {
+            fail("Valid Path, Should Not Throw Exception!");
+        } catch (OutOfSpaceException e) {
+            fail("Valid Allocation, Should Not Throw Exception!");
+        }
+    }
+
+    @Test
+    public void diskShouldSaveInTheArrayOnlyInTheFileSizeAneTheRestSetNull() {
+        FileSystem fs = new FileSystem(10);
+        String[] filePath = {"root", "dir1", "file1"};
+        try {
+            fs.file(filePath, 5);
+            String[][] actualDisk = fs.disk();
+            for (int i = 5; i < 10; i++) {
+                assertNull(actualDisk[i]);
+            }
+        } catch (BadFileNameException e) {
+            fail("Valid Path, Should Not Throw Exception!");
+        } catch (OutOfSpaceException e) {
+            fail("Valid Allocation, Should Not Throw Exception!");
+        }
+    }
+
+    @Test
+    public void diskShouldInitTheArrayWithNulls() {
+        FileSystem fs = new FileSystem(10);
+        String[][] actualDisk = fs.disk();
+        for (int i = 0; i < 10; i++) {
+            assertNull(actualDisk[i]);
+        }
+    }
+
+    @Test
+    public void diskShouldReturnAnArrayInTheGivenSize() {
+        FileSystem fs = new FileSystem(10);
+        String[][] actualDisk = fs.disk();
+        assertEquals(10, actualDisk.length);
+    }
+
+    //file:
+    @Test(expected = BadFileNameException.class)
+    public void fileShouldThrowIfPathDoesntStartWithRoot() throws BadFileNameException, OutOfSpaceException {
+        FileSystem fs = new FileSystem(10);
+        String[] wrongPath = {"toor", "dir1", "file1"};
+        fs.file(wrongPath, 5);
+    }
+
+    @Test(expected = OutOfSpaceException.class)
+    public void fileShouldThrowIfThereIsNotEnoughFreeSpaceAndFileNotExist() throws OutOfSpaceException {
+        FileSystem fs = new FileSystem(10);
+        String[] filePath = {"root", "dir1", "file1"};
+        try {
+            fs.file(filePath, 11);
+        } catch (BadFileNameException e) {
+            fail("Valid Path, Should Not Throw Exception!");
+        }
+    }
+
+    @Test
+    public void fileShouldReplaceOldFileWithNewWhenThereIsFreeSpaceAfterReplace() {
+        FileSystem fs = new FileSystem(10);
+        String[] dirPath = {"root", "dir1"};
+        String[] filePath = {"root", "dir1", "file1"};
+        try {
+            fs.file(filePath, 5);
+            String[] expectedLsdir = fs.lsdir(dirPath);
+            fs.file(filePath, 6);
+            String[] actualLsdir = fs.lsdir(dirPath);
+            assertArrayEquals(expectedLsdir, actualLsdir);
+        } catch (BadFileNameException e) {
+            fail("Valid Path, Should Not Throw Exception!");
+        } catch (OutOfSpaceException e) {
+            fail("Valid Allocation, Should Not Throw Exception!");
+        }
+    }
+
+    @Test(expected = OutOfSpaceException.class)
+    public void fileShouldThrowIfRemoveOldFileIsNotEnoughSpaceToTheNew() throws OutOfSpaceException {
+        FileSystem fs = new FileSystem(10);
+        String[] filePath = {"root", "file1"};
+        String[] otherFilePath = {"root", "file2"};
+        try {
+            fs.file(filePath, 5);
+            fs.file(otherFilePath, 5);
+            fs.file(filePath, 6);
+        } catch (BadFileNameException e) {
+            fail("Valid Path, Should Not Throw Exception!");
+        }
+    }
+
+    @Test
+    public void fileShouldAddFileToDir(){
+        FileSystem fs = new FileSystem(10);
+        String[] dirPath = {"root", "dir1"};
+        String[] filePath = {"root", "dir1", "file1"};
+        String[] expectedLsdir = {"file1"};
+        try {
+            fs.file(filePath, 5);
+        } catch (BadFileNameException e) {
+            fail("Valid Path, Should Not Throw Exception!");
+        } catch (OutOfSpaceException e) {
+            fail("Valid Allocation, Should Not Throw Exception!");
+        }
+        assertArrayEquals(expectedLsdir, fs.lsdir(dirPath));
+    }
+
+    @Test(expected = BadFileNameException.class)
+    public void fileShouldThrowIfAExistDirGiven() throws BadFileNameException {
+        FileSystem fs = new FileSystem(10);
+        String[] dirPath = {"root", "dir1"};
+        fs.dir(dirPath);
+        try{
+            fs.file(dirPath, 5);
+        } catch (OutOfSpaceException e) {
+            fail("Valid Allocation, Should Not Throw Exception!");
+        }
+    }
+    @Test
+    public void fileShouldReplaceOldFileWithNewWhenThereIsFreeSpace() {
+        FileSystem fs = new FileSystem(10);
+        String[] dirPath = {"root", "dir1"};
+        String[] filePath = {"root", "dir1", "file1"};
+        try {
+            fs.file(filePath, 5);
+            String[] expectedLsdir = fs.lsdir(dirPath);
+            fs.file(filePath, 4);
+            String[] actualLsdir = fs.lsdir(dirPath);
+            assertArrayEquals(expectedLsdir, actualLsdir);
+        } catch (BadFileNameException e) {
+            fail("Valid Path, Should Not Throw Exception!");
+        } catch (OutOfSpaceException e) {
+            fail("Valid Allocation, Should Not Throw Exception!");
+        }
+    }
 
 }
